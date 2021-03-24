@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hey {{ request.cookies.get('userID') }}</h1>
+    <h1>Here are your reservations</h1>
+    <p><a href="/menu">Go back to the main menu</a></p>
+    {% for ticket in tickets %}
+    <form action="/cancel_flight" method="post">
+        <p>flight id: {{ ticket.flight_id }}</p>
+        <input type="hidden" name="f_id" value={{ticket.ticket_id}} />
+        <input type="submit" value="Cancel this Flight!">
+    </form>
+    {% endfor %}
+
+{% endblock %}

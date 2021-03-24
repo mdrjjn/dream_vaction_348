@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hey {{ request.cookies.get('userID') }}</h1>
+    <h1><a href="/current_reservations">View Current Reservations!</a></h1>
+    <h1><a href="/avail_flights">Available Flights</a></h1>
+    <h1><a href="/logout">Log Out</a></h1>
+{% endblock %}

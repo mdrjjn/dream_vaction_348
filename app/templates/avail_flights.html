@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hey {{ request.cookies.get('userID') }}</h1>
+    <h1>Here are the available flights:</h1>
+    <p><a href="/menu">Go back to the main menu</a></p>
+    {% for flight in flights %}
+    <form action="/book_flight" method="post">
+        <p>flight id: {{ flight.flight_id }}</p>
+        <p>Airline id: {{ flight.airline_id }}</p>
+        <p>origin airport: {{ flight.depart_airport_id }}</p>
+        <p>destination airport: {{ flight.arrival_airport_id }}</p>
+        <p>seats remaining: {{ flight.remaining_seats }}</p>
+        <input type="hidden" name="f_id" value={{flight.flight_id}} />
+        <input type="submit" value="Book this Flight!">
+    </form>
+    {% endfor %}
+
+{% endblock %}
+
+<!-- 
+CREATE TABLE ticket (
+    ticket_id int NOT NULL AUTO_INCREMENT,
+    passenger_id int NOT NULL,
+    flight_id int(16) NOT NULL,
+    fare int,
+    PRIMARY KEY (ticket_id),
+    FOREIGN KEY(passenger_id) REFRENCES passenger(uid) ON DELETE CASCADE,
+    FOREIGN KEY(flight_id) REFERENCES flight(flight_id) ON DELETE CASCADE 
+); -->
