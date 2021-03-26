@@ -6,11 +6,13 @@
     <p><a href="/menu">Go back to the main menu</a></p>
     {% for flight in flights %}
     <form action="/book_flight" method="post">
-        <p>flight id: {{ flight.flight_id }}</p>
-        <p>Airline id: {{ flight.airline_id }}</p>
-        <p>origin airport: {{ flight.depart_airport_id }}</p>
-        <p>destination airport: {{ flight.arrival_airport_id }}</p>
-        <p>seats remaining: {{ flight.remaining_seats }}</p>
+        <p>Flight ID: {{ flight.flight_id }}</p>
+        <p>Airline: {{ flight.airline_name }}</p>
+		<p>Aircraft model: {{ flight.aircraft_model }}</p>
+		<p>Aircraft capacity: {{ flight.aircraft_capacity }}</p>
+        <p>From: {{ flight.depart_airport_name }}</p>
+        <p>To: {{ flight.arrival_airport_name }}</p>
+        <p>Seats remaining: {{ flight.remaining_seats }}</p>
         <input type="hidden" name="f_id" value={{flight.flight_id}} />
         <input type="submit" value="Book this Flight!">
     </form>

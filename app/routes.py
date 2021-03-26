@@ -18,17 +18,24 @@ def show_flights():
                               host=connection_info.MyHost,
                               database=connection_info.MyDatabase)
     cursor = cnx.cursor()
-    query = "select * from flight;"
+    query = "select flight_id, airline_name, model, capacity, depart_airport_name, airport_name as arrival_airport_name, remaining_seats from ("\
+                "select flight_id, airline_name, model, capacity, airport_name as depart_airport_name, arrival_airport_id, remaining_seats from ("\
+                    "select flight_id, airline_name, model, capacity, depart_airport_id, arrival_airport_id, remaining_seats from ("\
+                        "select flight_id, airline_name, aircraft_id, depart_airport_id, arrival_airport_id, remaining_seats from flight as F1 join airline as A on F1.airline_id = A.airline_id"\
+                    ") as F2 join aircraft as C on F2.aircraft_id = C.aircraft_id"\
+                ") as F3 join airport as P1 on F3.depart_airport_id = P1.airport_id"\
+            ") as F4 join airport as P2 on F4.arrival_airport_id = P2.airport_id"
     cursor.execute(query)
     flights = []
     for row in cursor:
         flight = {
             'flight_id':row[0],
-            'airline_id':row[1],
-            'aircraft_id':row[2],
-            'depart_airport_id':row[3],
-            'arrival_airport_id':row[4],
-            'remaining_seats':row[5]
+            'airline_name':row[1],
+            'aircraft_model':row[2],
+            'aircraft_capacity':row[3],
+            'depart_airport_name':row[4],
+            'arrival_airport_name':row[5],
+            'remaining_seats':row[6]
         }
         flights.append(flight)
     # pdb.set_trace()
