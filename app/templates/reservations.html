@@ -7,7 +7,7 @@
     {% for ticket in tickets %}
     <form action="/cancel_flight" method="post">
         <p>flight id: {{ ticket.flight_id }}</p>
-        <input type="hidden" name="f_id" value={{ticket.ticket_id}} />
+        <input type="hidden" name="t_id" value={{ticket.ticket_id}} />
         <input type="submit" value="Cancel this Flight!">
     </form>
     {% endfor %}

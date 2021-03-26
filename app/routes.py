@@ -77,7 +77,29 @@ def book_flight():
     cnx.close()
     
     return render_template('ticket_confirm.html')
+
+@app.route("/cancel_flight", methods=["GET", "POST"])
+def cancel_flight():
+    tid = request.form["t_id"]
     
+    cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
+                                  host=connection_info.MyHost,
+                                  database=connection_info.MyDatabase)
+    cursor = cnx.cursor()
+    
+    get_ticket = "SELECT * FROM ticket "\
+                    "WHERE ticket_id = %s"
+    cursor.execute(get_ticket, (int(tid),))
+    fid = cursor.fetchone()[2]
+    
+    remove_ticket = "DELETE FROM ticket "\
+                    "WHERE ticket_id = %s"
+    cursor.execute(remove_ticket, (int(tid),))
+    cnx.commit()
+    cursor.close()
+    cnx.close()
+    
+    return render_template('cancel_flight.html', fid = fid)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
