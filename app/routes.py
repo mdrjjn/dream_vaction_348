@@ -17,7 +17,7 @@ def show_flights():
     cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
                               host=connection_info.MyHost,
                               database=connection_info.MyDatabase)
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(prepared=True)
     query = "select flight_id, airline_name, model, capacity, depart_airport_name, airport_name as arrival_airport_name, remaining_seats from ("\
                 "select flight_id, airline_name, model, capacity, airport_name as depart_airport_name, arrival_airport_id, remaining_seats from ("\
                     "select flight_id, airline_name, model, capacity, depart_airport_id, arrival_airport_id, remaining_seats from ("\
@@ -38,7 +38,6 @@ def show_flights():
             'remaining_seats':row[6]
         }
         flights.append(flight)
-    # pdb.set_trace()
     cursor.close()
     cnx.close() 
     return render_template('avail_flights.html', flights=flights)
@@ -49,10 +48,9 @@ def current_reservations():
     cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
                                   host=connection_info.MyHost,
                                   database=connection_info.MyDatabase)
-    cursor = cnx.cursor()
-
-    #TODO FIX THE INJECTION
-    cursor.execute("select * from ticket where passenger_id = " + uid)
+    
+    cursor = cnx.cursor(prepared=True)
+    cursor.execute("select * from ticket where passenger_id = %s", (uid,))
     tickets = []
     for row in cursor:
         ticket = {
@@ -72,7 +70,7 @@ def book_flight():
     cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
                                   host=connection_info.MyHost,
                                   database=connection_info.MyDatabase)
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(prepared=True)
 
     add_ticket = "INSERT INTO ticket "\
             "(passenger_id, flight_id)"\
@@ -98,7 +96,9 @@ def cancel_flight():
                     "WHERE ticket_id = %s"
     cursor.execute(get_ticket, (int(tid),))
     fid = cursor.fetchone()[2]
-    
+    cursor.close()
+
+    cursor = cnx.cursor()
     remove_ticket = "DELETE FROM ticket "\
                     "WHERE ticket_id = %s"
     cursor.execute(remove_ticket, (int(tid),))
@@ -140,7 +140,7 @@ def sign_up():
         cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
                                   host=connection_info.MyHost,
                                   database=connection_info.MyDatabase)
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(prepared=True)
 
         add_user = "INSERT INTO passenger "\
                "(uid, first_name, last_name)"\

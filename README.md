@@ -7,3 +7,4 @@ To run this project:
       - https://code.visualstudio.com/docs/python/tutorial-flask
 - once in the env (source env/bin/activate), run pip install -r requirements.txt
 - run the server with 'gunicorn -b :5000 dv:app'
+- push to GCP with ' gcloud app deploy'
