@@ -3,11 +3,7 @@
 {% block content %}
     <h1>Hey {{ request.cookies.get('userID') }}</h1>
     <h1>Here are the available flights:</h1>
-    <form action="/capacity_filter" method="post" style="margin: 0; padding: 0;">
-        <input  type="submit" value="Filter by" style="display: inline;">
-        <input type="text" placeholder="min seats remaining" name="min_capacity" style="display: inline;">
-    </form>
-    <p><a href="/menu">Go back to the main menu</a></p>
+    <p><a href="/avail_flights">Go back to all available flights</a></p>
     {% for flight in flights %}
     <form action="/book_flight" method="post">
         <p>Flight ID: {{ flight.flight_id }}</p>

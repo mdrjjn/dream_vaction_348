@@ -153,3 +153,37 @@ def sign_up():
         
         return render_template('su_confirm.html', uid=uid)
 
+@app.route("/capacity_filter", methods=["GET", "POST"])
+def capacity_filter():
+    min_cap = request.form["min_capacity"]
+    cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
+                              host=connection_info.MyHost,
+                              database=connection_info.MyDatabase)
+    print(min_cap)
+    cursor = cnx.cursor()
+    query = "select flight_id, airline_name, model, capacity, depart_airport_name, airport_name as arrival_airport_name, remaining_seats from ( "\
+                "select flight_id, airline_name, model, capacity, airport_name as depart_airport_name, arrival_airport_id, remaining_seats from ( "\
+                    "select flight_id, airline_name, model, capacity, depart_airport_id, arrival_airport_id, remaining_seats from ( "\
+                        "select flight_id, airline_name, aircraft_id, depart_airport_id, arrival_airport_id, remaining_seats "\
+                        "from flight as F1 join airline as A on F1.airline_id = A.airline_id "\
+                        "where F1.remaining_seats >= %s "\
+                    ") as F2 join aircraft as C on F2.aircraft_id = C.aircraft_id "\
+                ") as F3 join airport as P1 on F3.depart_airport_id = P1.airport_id "\
+            ") as F4 join airport as P2 on F4.arrival_airport_id = P2.airport_id "
+    cursor.execute(query, (int(min_cap),))
+    flights = []
+    for row in cursor:
+        flight = {
+            'flight_id':row[0],
+            'airline_name':row[1],
+            'aircraft_model':row[2],
+            'aircraft_capacity':row[3],
+            'depart_airport_name':row[4],
+            'arrival_airport_name':row[5],
+            'remaining_seats':row[6]
+        }
+        flights.append(flight)
+    
+    cursor.close()
+    cnx.close() 
+    return render_template('capacity_filter.html', flights=flights)
