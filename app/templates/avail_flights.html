@@ -7,6 +7,10 @@
         <input  type="submit" value="Filter by" style="display: inline;">
         <input type="text" placeholder="min seats remaining" name="min_capacity" style="display: inline;">
     </form>
+    <form action="/airline_filter" method="post" style="margin: 0; padding: 0;">
+        <input  type="submit" value="Filter by" style="display: inline;">
+        <input type="text" placeholder="choose your airline" name="airline_choice" style="display: inline;">
+    </form>
     <p><a href="/menu">Go back to the main menu</a></p>
     {% for flight in flights %}
     <form action="/book_flight" method="post">
@@ -18,6 +22,7 @@
         <p>To: {{ flight.arrival_airport_name }}</p>
         <p>Seats remaining: {{ flight.remaining_seats }}</p>
         <input type="hidden" name="f_id" value={{flight.flight_id}} />
+        <input type="hidden" name="s_id" value={{flight.remaining_seats}} />
         <input type="submit" value="Book this Flight!">
     </form>
     {% endfor %}
