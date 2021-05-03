@@ -3,6 +3,8 @@ import pdb
 import sys
 from app import connection_info
 import random
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 from flask import render_template, request, url_for, make_response, redirect
 from app import app
@@ -28,6 +30,7 @@ def show_flights():
     # cursor.execute(query)
     cursor.callproc("getFlight", (-1,))
     flights = []
+
     for result in cursor.stored_results():
         for row in result.fetchall():
             flight = {
@@ -39,7 +42,8 @@ def show_flights():
                 'arrival_airport_name':row[5],
                 'remaining_seats':row[6]
             }
-            flights.append(flight)
+     flights.append(flight)
+
     cursor.close()
     cnx.close() 
     return render_template('avail_flights.html', flights=flights)
@@ -78,20 +82,36 @@ def current_reservations():
 def book_flight():
     uid = request.cookies.get('userID')
     fid = request.form["f_id"]
+    seats = request.form["s_id"]
+    logging.debug('Please let me log!!')
+
+    if int(seats) < 1:
+        logging.debug('Inside the if statement')
+        return render_template('ticket_failure.html')
     
-    cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
+    
+    try:   
+        cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
                                   host=connection_info.MyHost,
                                   database=connection_info.MyDatabase)
-    cursor = cnx.cursor(prepared=True)
+        cnx.autocommit = False
+        cursor = cnx.cursor(prepared=True)
+        cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE")
 
-    add_ticket = "INSERT INTO ticket "\
+        add_ticket = "INSERT INTO ticket "\
             "(passenger_id, flight_id)"\
             "VALUES (%s, %s)"
-    ticket_data = (int(uid), int(fid))
-    cursor.execute(add_ticket, ticket_data)
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        ticket_data = (int(uid), int(fid))
+        cursor.execute(add_ticket, ticket_data)
+        cnx.commit()
+
+    except  mysql.connector.Error as error:
+            cnx.rollback()  
+
+    finally:
+        if cnx.is_connected():    
+            cursor.close()
+            cnx.close()
     
     return render_template('ticket_confirm.html')
 
@@ -99,24 +119,32 @@ def book_flight():
 def cancel_flight():
     tid = request.form["t_id"]
     
-    cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
+    try:
+        cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
                                   host=connection_info.MyHost,
                                   database=connection_info.MyDatabase)
-    cursor = cnx.cursor()
+        cnx.autocommit = False
+        cursor = cnx.cursor()
     
-    get_ticket = "SELECT * FROM ticket "\
+        get_ticket = "SELECT * FROM ticket "\
                     "WHERE ticket_id = %s"
-    cursor.execute(get_ticket, (int(tid),))
-    fid = cursor.fetchone()[2]
-    cursor.close()
+        cursor.execute(get_ticket, (int(tid),))
+        fid = cursor.fetchone()[2]
+        cursor.close()
 
-    cursor = cnx.cursor()
-    remove_ticket = "DELETE FROM ticket "\
-                    "WHERE ticket_id = %s"
-    cursor.execute(remove_ticket, (int(tid),))
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cursor = cnx.cursor()
+        remove_ticket = "DELETE FROM ticket "\
+                        "WHERE ticket_id = %s"
+        cursor.execute(remove_ticket, (int(tid),))
+        cnx.commit()
+
+    except  mysql.connector.Error as error:
+            cnx.rollback()  
+
+    finally:    
+        if cnx.is_connected():       
+            cursor.close()
+            cnx.close()
     
     return render_template('cancel_flight.html', fid = fid)
 
@@ -198,3 +226,39 @@ def capacity_filter():
     cursor.close()
     cnx.close() 
     return render_template('capacity_filter.html', flights=flights)
+
+@app.route("/airline_filter", methods=["GET", "POST"])
+def airline_filter():
+    airline_choice = request.form["airline_choice"]
+    cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
+                              host=connection_info.MyHost,
+                              database=connection_info.MyDatabase)
+    print(airline_choice, type(airline_choice))
+
+    cursor = cnx.cursor()
+    query = "select flight_id, airline_name, model, capacity, depart_airport_name, airport_name as arrival_airport_name, remaining_seats from ( "\
+                "select flight_id, airline_name, model, capacity, airport_name as depart_airport_name, arrival_airport_id, remaining_seats from ( "\
+                    "select flight_id, airline_name, model, capacity, depart_airport_id, arrival_airport_id, remaining_seats from ( "\
+                        "select flight_id, airline_name, aircraft_id, depart_airport_id, arrival_airport_id, remaining_seats "\
+                        "from flight as F1 join airline as A on F1.airline_id = A.airline_id "\
+                        "where A.airline_name = %s "\
+                    ") as F2 join aircraft as C on F2.aircraft_id = C.aircraft_id "\
+                ") as F3 join airport as P1 on F3.depart_airport_id = P1.airport_id "\
+            ") as F4 join airport as P2 on F4.arrival_airport_id = P2.airport_id "
+    cursor.execute(query,(str(airline_choice),))
+    flights = []
+    for row in cursor:
+        flight = {
+            'flight_id':row[0],
+            'airline_name':row[1],
+            'aircraft_model':row[2],
+            'aircraft_capacity':row[3],
+            'depart_airport_name':row[4],
+            'arrival_airport_name':row[5],
+            'remaining_seats':row[6]
+        }
+        flights.append(flight)
+    
+    cursor.close()
+    cnx.close() 
+    return render_template('airline_filter.html', flights=flights)
