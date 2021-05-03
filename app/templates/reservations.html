@@ -3,12 +3,21 @@
 {% block content %}
     <h1>Hey {{ request.cookies.get('userID') }}</h1>
     <h1>Here are your reservations</h1>
-    <p><a href="/menu">Go back to the main menu</a></p>
+    <p><a href="/menu">Go back to the main menu.</a></p>
     {% for ticket in tickets %}
     <form action="/cancel_flight" method="post">
-        <p>flight id: {{ ticket.flight_id }}</p>
-        <input type="hidden" name="t_id" value={{ticket.ticket_id}} />
-        <input type="submit" value="Cancel this Flight!">
+        <div class="flight">
+            <p class="bottomless topless">Ticket ID: {{ ticket.ticket_id }}</p>
+            <p class="bottomless topless">Flight ID: {{ ticket.flight_id }}</p>
+            <p class="bottomless topless">Airline: {{ ticket.airline_name }}</p>
+            <p class="bottomless topless">Aircraft model: {{ ticket.aircraft_model }}</p>
+            <p class="bottomless topless">Aircraft capacity: {{ ticket.aircraft_capacity }}</p>
+            <p class="bottomless topless">From: {{ ticket.depart_airport_name }}</p>
+            <p class="bottomless topless">To: {{ ticket.arrival_airport_name }}</p>
+            <p class="bottomless topless">Seats remaining: {{ ticket.remaining_seats }}</p>
+            <input type="hidden" name="t_id" value={{ticket.ticket_id}} />
+            <div class="centerer"><input type="submit" value="Cancel this Flight!"></div>
+        </div>
     </form>
     {% endfor %}
 

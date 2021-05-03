@@ -24,8 +24,10 @@
         <input type="hidden" name="f_id" value={{flight.flight_id}} />
         <input type="hidden" name="s_id" value={{flight.remaining_seats}} />
         <input type="submit" value="Book this Flight!">
+
     </form>
     {% endfor %}
+    <p><a href="/menu">Go back to the main menu.</a></p>
 
 {% endblock %}
 

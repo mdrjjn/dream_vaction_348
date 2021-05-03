@@ -4,10 +4,12 @@
     <h1>Login</h1>
     <!-- https://stackoverflow.com/questions/11556958/sending-data-from-html-form-to-a-python-script-in-flask -->
     <form action="/login" method="post">
-        <input type="text" name="user_id">
-        <input type="submit">
+        <div class="same_line">
+            <input type="text" id="login_input" name="user_id" placeholder="User ID">
+            <input type="submit" id="login_button" value="Login">
+        </div>
     </form> 
     <h1>Sign Up</h1>
     <!-- https://stackoverflow.com/questions/11556958/sending-data-from-html-form-to-a-python-script-in-flask -->
-    <p><a href="/signup">Sign Up</a></p>
+    <p>Don't have an account? <a href="/signup">Create one here.</a></p>
 {% endblock %}
