@@ -42,7 +42,7 @@ def show_flights():
                 'arrival_airport_name':row[5],
                 'remaining_seats':row[6]
             }
-     flights.append(flight)
+            flights.append(flight)
 
     cursor.close()
     cnx.close() 
