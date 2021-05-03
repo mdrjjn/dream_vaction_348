@@ -1,0 +1,56 @@
+
+.same_line {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.wide {
+    width: 100%;
+}
+
+.centerer {
+    text-align: center;
+}
+
+.flight {
+    background-color: white;
+    border: 1em solid yellow;
+    border-radius: 1em;
+    padding: 1em;
+}
+
+.bottomless {
+    margin-bottom: 0;
+}
+
+.topless {
+    margin-top: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+html {
+    display: table;
+    margin: auto;
+}
+
+body {
+    background-color: lightblue;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+input[type=submit] {
+    margin: auto;
+    margin-top: 1em;
+}
+
+#login_input {
+    width: 69%;
+}
+
+#login_button {
+    width: 30%;
+}
