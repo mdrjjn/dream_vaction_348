@@ -4,7 +4,7 @@ import sys
 from app import connection_info
 import random
 
-from flask import render_template, request, url_for, make_response
+from flask import render_template, request, url_for, make_response, redirect
 from app import app
 
 
@@ -17,27 +17,29 @@ def show_flights():
     cnx = mysql.connector.connect(user=connection_info.MyUser, password=connection_info.MyPassword,
                               host=connection_info.MyHost,
                               database=connection_info.MyDatabase)
-    cursor = cnx.cursor(prepared=True)
-    query = "select flight_id, airline_name, model, capacity, depart_airport_name, airport_name as arrival_airport_name, remaining_seats from ("\
-                "select flight_id, airline_name, model, capacity, airport_name as depart_airport_name, arrival_airport_id, remaining_seats from ("\
-                    "select flight_id, airline_name, model, capacity, depart_airport_id, arrival_airport_id, remaining_seats from ("\
-                        "select flight_id, airline_name, aircraft_id, depart_airport_id, arrival_airport_id, remaining_seats from flight as F1 join airline as A on F1.airline_id = A.airline_id"\
-                    ") as F2 join aircraft as C on F2.aircraft_id = C.aircraft_id"\
-                ") as F3 join airport as P1 on F3.depart_airport_id = P1.airport_id"\
-            ") as F4 join airport as P2 on F4.arrival_airport_id = P2.airport_id"
-    cursor.execute(query)
+    cursor = cnx.cursor()
+    # query = "select flight_id, airline_name, model, capacity, depart_airport_name, airport_name as arrival_airport_name, remaining_seats from ("\
+    #             "select flight_id, airline_name, model, capacity, airport_name as depart_airport_name, arrival_airport_id, remaining_seats from ("\
+    #                 "select flight_id, airline_name, model, capacity, depart_airport_id, arrival_airport_id, remaining_seats from ("\
+    #                     "select flight_id, airline_name, aircraft_id, depart_airport_id, arrival_airport_id, remaining_seats from flight as F1 join airline as A on F1.airline_id = A.airline_id"\
+    #                 ") as F2 join aircraft as C on F2.aircraft_id = C.aircraft_id"\
+    #             ") as F3 join airport as P1 on F3.depart_airport_id = P1.airport_id"\
+    #         ") as F4 join airport as P2 on F4.arrival_airport_id = P2.airport_id"
+    # cursor.execute(query)
+    cursor.callproc("getFlight", (-1,))
     flights = []
-    for row in cursor:
-        flight = {
-            'flight_id':row[0],
-            'airline_name':row[1],
-            'aircraft_model':row[2],
-            'aircraft_capacity':row[3],
-            'depart_airport_name':row[4],
-            'arrival_airport_name':row[5],
-            'remaining_seats':row[6]
-        }
-        flights.append(flight)
+    for result in cursor.stored_results():
+        for row in result.fetchall():
+            flight = {
+                'flight_id':row[0],
+                'airline_name':row[1],
+                'aircraft_model':row[2],
+                'aircraft_capacity':row[3],
+                'depart_airport_name':row[4],
+                'arrival_airport_name':row[5],
+                'remaining_seats':row[6]
+            }
+            flights.append(flight)
     cursor.close()
     cnx.close() 
     return render_template('avail_flights.html', flights=flights)
@@ -49,15 +51,25 @@ def current_reservations():
                                   host=connection_info.MyHost,
                                   database=connection_info.MyDatabase)
     
-    cursor = cnx.cursor(prepared=True)
+    cursor = cnx.cursor(buffered=True)
     cursor.execute("select * from ticket where passenger_id = %s", (uid,))
     tickets = []
     for row in cursor:
-        ticket = {
-            'ticket_id':row[0],
-            'flight_id' : row[2]
-        }
-        tickets.append(ticket)
+        flight_cursor = cnx.cursor()
+        flight_cursor.callproc("getFlight", (row[2],))
+        for result in flight_cursor.stored_results():
+            for flight in result.fetchall():
+                ticket = {
+                    'ticket_id':row[0],
+                    'flight_id':row[2],
+                    'airline_name':flight[1],
+                    'aircraft_model':flight[2],
+                    'aircraft_capacity':flight[3],
+                    'depart_airport_name':flight[4],
+                    'arrival_airport_name':flight[5],
+                    'remaining_seats':flight[6]
+                }
+                tickets.append(ticket)
     cursor.close()
     cnx.close()
     return render_template('reservations.html', tickets=tickets)
@@ -111,7 +123,7 @@ def cancel_flight():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     uid = request.form["user_id"]
-    resp = make_response(render_template('menu.html'))
+    resp = make_response(redirect(url_for("menu")))
     resp.set_cookie('userID', uid)
     return resp
 
@@ -121,7 +133,6 @@ def logout():
     resp = make_response(render_template('index.html'))
     resp.set_cookie('userID', uid, max_age=0)
     return resp
-
 
 @app.route("/menu", methods=["GET", "POST"])
 def menu():
