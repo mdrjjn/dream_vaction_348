@@ -14,16 +14,18 @@
     <p><a href="/menu">Go back to the main menu</a></p>
     {% for flight in flights %}
     <form action="/book_flight" method="post">
-        <p>Flight ID: {{ flight.flight_id }}</p>
-        <p>Airline: {{ flight.airline_name }}</p>
-		<p>Aircraft model: {{ flight.aircraft_model }}</p>
-		<p>Aircraft capacity: {{ flight.aircraft_capacity }}</p>
-        <p>From: {{ flight.depart_airport_name }}</p>
-        <p>To: {{ flight.arrival_airport_name }}</p>
-        <p>Seats remaining: {{ flight.remaining_seats }}</p>
-        <input type="hidden" name="f_id" value={{flight.flight_id}} />
-        <input type="hidden" name="s_id" value={{flight.remaining_seats}} />
-        <input type="submit" value="Book this Flight!">
+        <div class="flight">
+            <p class="bottomless topless">Flight ID: {{ flight.flight_id }}</p>
+            <p class="bottomless topless">Airline: {{ flight.airline_name }}</p>
+            <p class="bottomless topless">Aircraft model: {{ flight.aircraft_model }}</p>
+            <p class="bottomless topless">Aircraft capacity: {{ flight.aircraft_capacity }}</p>
+            <p class="bottomless topless">From: {{ flight.depart_airport_name }}</p>
+            <p class="bottomless topless">To: {{ flight.arrival_airport_name }}</p>
+            <p class="bottomless topless">Seats remaining: {{ flight.remaining_seats }}</p>
+            <input type="hidden" name="f_id" value={{flight.flight_id}} />
+            <input type="hidden" name="s_id" value={{flight.remaining_seats}} />
+            <div class="centerer"><input type="submit" value="Book this Flight!"></div>
+        </div>
 
     </form>
     {% endfor %}
